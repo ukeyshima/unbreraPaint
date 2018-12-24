@@ -28,7 +28,7 @@ export default class GestureArea extends React.Component {
     canvas.width = this.props.gestureAreaWidth;
     canvas.height = this.props.gestureAreaHeight;
     const context = canvas.getContext('2d');
-    context.fillStyle = '#fff';
+    context.fillStyle = '#111';
     context.fillRect(0, 0, canvas.width, canvas.height);
     this.setState({
       context: context
@@ -51,7 +51,7 @@ export default class GestureArea extends React.Component {
       const context = this.state.context;
       const x = event.layerX;
       const y = event.layerY;
-      context.strokeStyle = '#000';
+      context.strokeStyle = '#eee';
       context.lineWidth = 10;
       context.lineJoin = 'round';
       context.lineCap = 'round';
@@ -153,7 +153,7 @@ export default class GestureArea extends React.Component {
   };
   handleMouseUp = () => {
     const context = this.state.context;
-    context.fillStyle = '#fff';
+    context.fillStyle = '#111';
     context.fillRect(
       0,
       0,

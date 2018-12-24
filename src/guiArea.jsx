@@ -243,7 +243,7 @@ export default class GuiArea extends React.Component {
             y={this.state.lastVisualizeUndoStackCoord[1] - this.state.scrollTop}
             width={this.props.currentStackBackgroundSize}
             height={this.props.currentStackBackgroundSize}
-            fill='#f70'
+            fill='#f50'
           />
           {this.state.visualizeUndoStack.map((e, i) => {
             if (
