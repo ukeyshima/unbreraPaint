@@ -1,19 +1,25 @@
-import React from "react";
+import React from 'react';
+import { inject, observer } from 'mobx-react';
+import { FaEyeDropper } from 'react-icons/fa';
 
-class ColorPickerPropertyArea extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-  handleClick() {
-    this.props.colorpickerevent();
-  }
+@inject(({ state }, props) => {
+  return {
+    colorPickerEvent: state.colorPickerEvent
+  };
+})
+export default class ColorPickerPropertyArea extends React.Component {
+  handleClick = () => {
+    this.props.colorPickerEvent();
+  };
   render() {
     return (
-      <div style={this.props.style} onClick={this.handleClick.bind(this)}>
-        ✎
+      <div
+        style={this.props.style}
+        onClick={this.handleClick}
+        onTouchStart={this.handleClick}
+      >
+        <FaEyeDropper />
       </div>
     );
   }
 }
-
-export default ColorPickerPropertyArea;

@@ -1,7 +1,5 @@
-#version 300 es
-precision highp float;
+precision mediump float;
 uniform vec2 resolution;
-out vec4 outColor;
 #define PI 3.141592
 
 vec3 hsv2rgb(vec3 c){
@@ -12,5 +10,5 @@ vec3 hsv2rgb(vec3 c){
 void main(void){
     vec2 p = (gl_FragCoord.xy * 2.0 - resolution) / min(resolution.x, resolution.y);             
     vec3 color = step(length(p),1.0)*(0.03/length(p)+hsv2rgb(vec3(atan(p.x,p.y)/2.0/PI,length(p),1.0)));	    
-    outColor=vec4(color,1.0);
+    gl_FragColor=vec4(color,1.0);
 }

@@ -1,19 +1,25 @@
-import React from "react";
+import React from 'react';
+import { inject, observer } from 'mobx-react';
+import { FaSlash } from 'react-icons/fa';
 
-class LinePropertyArea extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-  handleClick() {
-    this.props.lineevent();
-  }
+@inject(({ state }, props) => {
+  return {
+    lineEvent: state.lineEvent
+  };
+})
+export default class LinePropertyArea extends React.Component {
+  handleClick = () => {
+    this.props.lineEvent();
+  };
   render() {
     return (
-      <div style={this.props.style} onClick={this.handleClick.bind(this)}>
-        ＼
+      <div
+        style={this.props.style}
+        onClick={this.handleClick}
+        onTouchStart={this.handleClick}
+      >
+        <FaSlash />
       </div>
     );
   }
 }
-
-export default LinePropertyArea;

@@ -1,4 +1,4 @@
-class UndoManager {
+export default class UndoManager {
   constructor(initialImg, initialState) {
     this.branchId = 0;
     this.undoStack = [
@@ -29,7 +29,7 @@ class UndoManager {
   }
   undo() {
     if (this.hasUndoStack()) {
-      console.log("undo!");
+      console.log('undo!');
       const stack = this.undoStack.pop();
       this.redoStack.push(stack);
     } else {
@@ -38,7 +38,7 @@ class UndoManager {
   }
   redo() {
     if (this.hasRedoStack()) {
-      console.log("redo!");
+      console.log('redo!');
       const stack = this.redoStack.pop();
       this.undoStack.push(stack);
     } else {
@@ -85,7 +85,7 @@ class UndoManager {
     const branchPointIndex = currentId.lastIndexOf(currentBranchId) - 1;
     const branchPoint = branchPointStack[branchPointIndex];
     if (branchPoint) {
-      console.log("unbra!");
+      console.log('unbra!');
       const nextBranchId = currentBranchId - 1;
       const branchPointNum = undoStack.lastIndexOf(branchPoint);
       const j = undoStack.length - branchPointNum - 1;
@@ -119,7 +119,7 @@ class UndoManager {
         return e.nextStack.length > currentId.concat().reverse()[i] + 1;
       });
     if (branchPoint) {
-      console.log("rebra!");
+      console.log('rebra!');
       const branchPointNum = undoStack.lastIndexOf(branchPoint);
       const j = undoStack.length - branchPointNum - 1;
       for (let i = 0; i < j; i++) {
@@ -193,5 +193,3 @@ class UndoManager {
     }
   }
 }
-
-export default UndoManager;

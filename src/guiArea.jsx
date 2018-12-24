@@ -1,73 +1,94 @@
-import React from "react";
+import React from 'react';
+import { inject, observer } from 'mobx-react';
+import GuiAreaHeader from './guiAreaHeader.jsx';
 
-class GuiArea extends React.Component {
+@inject(({ state }, props) => {
+  return {
+    undoManager: state.undoManager,
+    updateRender: state.updateRender,
+    updateVisualizeTreeUndoFunction: state.updateVisualizeTreeUndoFunction,
+    updateUpdateCommandTextFunction: state.updateUpdateCommandTextFunction,
+    imgSize: state.imgSize,
+    guiAreaWidth: state.guiAreaWidth,
+    guiAreaHeight: state.guiAreaHeight,
+    currentStackBackgroundSize: state.currentStackBackgroundSize,
+    guiAreaPositionX: state.guiAreaPosition.x,
+    guiAreaPositionY: state.guiAreaPosition.y,
+    headerHeight: state.headerHeight
+  };
+})
+export default class GuiArea extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       visualizeUndoStack: [],
-      lastVisualizeUndoStackCoord: [40, 27.5],
+      lastVisualizeUndoStackCoord: [
+        (this.props.imgSize * 3) / 2 - this.props.imgSize / 2,
+        (this.props.imgSize * 5) / 4 - this.props.imgSize / 2
+      ],
       visualizeBranch: [],
       visualizeFlowArrow: [0, 0, 10, 10],
       scrollLeft: 0,
       scrollTop: 0,
-      commandText: ""
+      commandText: ''
     };
-    this.imgSize = 50;
-    this.lastUndoStack = this.props.undomanager.lastUndoStack();
-    this.unbra = this.unbra.bind(this);
-    this.rebra = this.rebra.bind(this);
-    this.undo = this.undo.bind(this);
-    this.redo = this.redo.bind(this);
-  }
-  componentWillReceiveProps(nextProps) {
-    this.visualizeTreeUndo(
-      nextProps.undomanager.undoStack[0],
-      nextProps.undomanager.redoStack,
-      50,
-      (nextProps.undomanager.undoStack[0].stackWidth / 2) *
-        ((this.imgSize / 2) * 3)
-    );
   }
   componentDidMount() {
-    this.wrapperDivArea.addEventListener("scroll", this.handleScroll(this));
-    this.topArrow.addEventListener("click", this.unbra);
-    this.leftArrow.addEventListener("click", this.undo);
-    this.bottomArrow.addEventListener("click", this.rebra);
-    this.rightArrow.addEventListener("click", this.redo);
+    this.props.updateVisualizeTreeUndoFunction(this.visualizeTreeUndo);
+    this.props.updateUpdateCommandTextFunction(this.updateCommandText);
+    setTimeout(() => {
+      this.visualizeTreeUndo(
+        this.props.undoManager.undoStack[0],
+        this.props.undoManager.redoStack,
+        this.props.imgSize,
+        (this.props.undoManager.undoStack[0].stackWidth / 2) *
+          ((this.props.imgSize / 2) * 3)
+      );
+    }, 10);
+    this.wrapperDivArea.addEventListener('scroll', this.handleScroll(this));
   }
   componentWillUnmount() {
-    this.wrapperDivArea.removeEventListener("scroll", this.handleScroll(this));
-    this.topArrow.addEventListener("click", this.unbra);
-    this.leftArrow.addEventListener("click", this.undo);
-    this.bottomArrow.addEventListener("click", this.rebra);
-    this.rightArrow.addEventListener("click", this.redo);
+    this.wrapperDivArea.removeEventListener('scroll', this.handleScroll(this));
   }
-  visualizeTreeUndo(startUndoStack, redoStack, x, y) {
+  visualizeTreeUndo = (startUndoStack, redoStack, x, y) => {
     const self = this;
     const visualizeUndoStack = [];
     const visualizeBranch = [];
     const lastUndoStack = this.lastUndoStack;
-    let prevLastVisualizeUndoStackCoord = [75, 62.5];
-    let lastVisualizeUndoStackCoord = [40, 27.5];
+    this.lastUndoStack = this.props.undoManager.lastUndoStack();
+    let prevLastVisualizeUndoStackCoord = [
+      (this.props.imgSize * 3) / 2,
+      (this.props.imgSize * 5) / 4
+    ];
+    let lastVisualizeUndoStackCoord = [
+      (this.props.imgSize * 3) / 2 - this.props.currentStackBackgroundSize / 2,
+      (this.props.imgSize * 5) / 4 - this.props.currentStackBackgroundSize / 2
+    ];
     (function createTreeObj(stack, x, y) {
       visualizeUndoStack.push({
         stack: stack,
         x: x,
         y: y,
-        width: 50,
-        height: 50
+        width: self.props.imgSize,
+        height: self.props.imgSize
       });
       if (stack == lastUndoStack) {
-        prevLastVisualizeUndoStackCoord = [x + 25, y + 25];
+        prevLastVisualizeUndoStackCoord = [
+          x + self.props.imgSize / 2,
+          y + self.props.imgSize / 2
+        ];
       }
-      if (stack == self.props.undomanager.lastUndoStack()) {
-        self.lastUndoStack = self.props.undomanager.lastUndoStack();
-        lastVisualizeUndoStackCoord = [x - 10, y - 10];
+      if (stack == self.props.undoManager.lastUndoStack()) {
+        self.lastUndoStack = self.props.undoManager.lastUndoStack();
+        lastVisualizeUndoStackCoord = [
+          x - (self.props.currentStackBackgroundSize - self.props.imgSize) / 2,
+          y - (self.props.currentStackBackgroundSize - self.props.imgSize) / 2
+        ];
       }
       if (stack.nextStack.length > 0) {
         let totalSpread =
           -(stack.stackWidth - 1) / 2 +
-          (self.props.undomanager.getNextBranchPoint(stack.nextStack[0])
+          (self.props.undoManager.getNextBranchPoint(stack.nextStack[0])
             .stackWidth -
             1) /
             2;
@@ -75,36 +96,37 @@ class GuiArea extends React.Component {
         stack.nextStack.forEach((e, i) => {
           if (i !== 0)
             totalSpread +=
-              (self.props.undomanager.getNextBranchPoint(stack.nextStack[i - 1])
+              (self.props.undoManager.getNextBranchPoint(stack.nextStack[i - 1])
                 .stackWidth -
                 1) /
                 2 +
-              (self.props.undomanager.getNextBranchPoint(stack.nextStack[i])
+              (self.props.undoManager.getNextBranchPoint(stack.nextStack[i])
                 .stackWidth -
                 1) /
                 2;
           num = totalSpread + i;
           visualizeBranch.push({
-            x1: x + self.imgSize,
-            y1: y + self.imgSize / 2,
-            x2: x + (self.imgSize / 2) * 3,
-            y2: y + (self.imgSize / 2) * 3 * num + self.imgSize / 2,
-            x3: x + self.imgSize + (self.imgSize / 10) * 3,
-            y3: y + self.imgSize / 2,
-            x4: x + (self.imgSize / 2) * 3 - (self.imgSize / 10) * 3,
-            y4: y + (self.imgSize / 2) * 3 * num + self.imgSize / 2,
-            stroke: self.props.undomanager.undoStack.some(
+            x1: x + self.props.imgSize,
+            y1: y + self.props.imgSize / 2,
+            x2: x + (self.props.imgSize / 2) * 3,
+            y2: y + (self.props.imgSize / 2) * 3 * num + self.props.imgSize / 2,
+            x3: x + self.props.imgSize + (self.props.imgSize / 10) * 3,
+            y3: y + self.props.imgSize / 2,
+            x4:
+              x + (self.props.imgSize / 2) * 3 - (self.props.imgSize / 10) * 3,
+            y4: y + (self.props.imgSize / 2) * 3 * num + self.props.imgSize / 2,
+            stroke: self.props.undoManager.undoStack.some(
               e => e === stack.nextStack[i]
             )
-              ? "#f26"
+              ? '#f26'
               : redoStack.some(e => e === stack.nextStack[i])
-                ? "#4f2"
-                : "#24f"
+              ? '#4f2'
+              : '#24f'
           });
           createTreeObj(
             e,
-            x + (self.imgSize / 2) * 3,
-            y + (self.imgSize / 2) * 3 * num
+            x + (self.props.imgSize / 2) * 3,
+            y + (self.props.imgSize / 2) * 3 * num
           );
         });
       }
@@ -116,106 +138,77 @@ class GuiArea extends React.Component {
       visualizeFlowArrow: [
         prevLastVisualizeUndoStackCoord[0],
         prevLastVisualizeUndoStackCoord[1],
-        lastVisualizeUndoStackCoord[0] + 35,
-        lastVisualizeUndoStackCoord[1] + 35
+        lastVisualizeUndoStackCoord[0] +
+          this.props.currentStackBackgroundSize / 2,
+        lastVisualizeUndoStackCoord[1] +
+          this.props.currentStackBackgroundSize / 2
       ]
     });
-  }
-  imgHandleClick(stack) {
-    return function(e) {
-      this.props.undomanager.recomposeUndoStack(stack);
-      this.props.updaterender(stack);
+  };
+  imgHandleClick = stack => {
+    return e => {
+      this.props.undoManager.recomposeUndoStack(stack);
+      this.props.updateRender(stack);
       this.visualizeTreeUndo(
-        this.props.undomanager.undoStack[0],
-        this.props.undomanager.redoStack,
-        50,
-        (this.props.undomanager.undoStack[0].stackWidth / 2) *
-          ((this.imgSize / 2) * 3)
+        this.props.undoManager.undoStack[0],
+        this.props.undoManager.redoStack,
+        this.props.imgSize,
+        (this.props.undoManager.undoStack[0].stackWidth / 2) *
+          ((this.props.imgSize / 2) * 3)
       );
     };
-  }
-  handleScroll(self) {
+  };
+  handleScroll = self => {
     return function(e) {
       self.setState({
         scrollLeft: this.scrollLeft,
         scrollTop: this.scrollTop
       });
     };
-  }
-  undo() {
-    this.props.undomanager.undo();
-    this.visualizeTreeUndo(
-      this.props.undomanager.undoStack[0],
-      this.props.undomanager.redoStack,
-      50,
-      (this.props.undomanager.undoStack[0].stackWidth / 2) *
-        ((this.imgSize / 2) * 3)
-    );
-    this.updateCommandText("undo");
-  }
-  redo() {
-    this.props.undomanager.redo();
-    this.visualizeTreeUndo(
-      this.props.undomanager.undoStack[0],
-      this.props.undomanager.redoStack,
-      50,
-      (this.props.undomanager.undoStack[0].stackWidth / 2) *
-        ((this.imgSize / 2) * 3)
-    );
-    this.updateCommandText("redo");
-  }
-  unbra() {
-    this.props.undomanager.unbra();
-    this.visualizeTreeUndo(
-      this.props.undomanager.undoStack[0],
-      this.props.undomanager.redoStack,
-      50,
-      (this.props.undomanager.undoStack[0].stackWidth / 2) *
-        ((this.imgSize / 2) * 3)
-    );
-    this.updateCommandText("unbra");
-  }
-  rebra() {
-    this.props.undomanager.rebra();
-    this.visualizeTreeUndo(
-      this.props.undomanager.undoStack[0],
-      this.props.undomanager.redoStack,
-      50,
-      (this.props.undomanager.undoStack[0].stackWidth / 2) *
-        ((this.imgSize / 2) * 3)
-    );
-    this.updateCommandText("rebra");
-  }
-  updateCommandText(text) {
+  };
+  updateCommandText = text => {
     this.setState({
       commandText: text
     });
-  }
+  };
   render() {
     return (
       <div
+        touch-action='none'
         ref={e => (this.wrapperDivArea = e)}
         style={{
-          float: "left",
-          position: "relative",
-          overflow: "auto",
-          width: this.props.style.width,
-          height: this.props.style.height,
-          backgroundColor: "#000"
+          overflow: 'auto',
+          width: this.props.guiAreaWidth,
+          height: this.props.guiAreaHeight + this.props.headerHeight,
+          position: 'absolute',
+          top: this.props.guiAreaPositionY,
+          left: this.props.guiAreaPositionX,
+          borderRadius: 5
         }}
       >
-        <svg
+        <GuiAreaHeader
           style={{
-            width: this.props.style.width,
-            height: this.props.style.height,
-            backgroundColor: this.props.style.backgroundColor,
-            position: "absolute",
+            width: this.props.guiAreaWidth,
+            height: this.props.headerHeight,
+            backgroundColor: '#ddd',
+            position: 'absolute',
             left: this.state.scrollLeft,
-            top: this.state.scrollTop,
-            userSelect: "none"
+            top: this.state.scrollTop
           }}
-          xmlns="http://www.w3.org/2000/svg"
-          xmlnsXlink="http://www.w3.org/1999/xlink"
+        />
+        <svg
+          touch-action='auto'
+          style={{
+            width: this.props.guiAreaWidth,
+            height: this.props.guiAreaHeight,
+            backgroundColor: '#111',
+            position: 'absolute',
+            left: this.state.scrollLeft,
+            top: this.state.scrollTop + this.props.headerHeight,
+            userSelect: 'none'
+          }}
+          xmlns='http://www.w3.org/2000/svg'
+          xmlnsXlink='http://www.w3.org/1999/xlink'
         >
           {this.state.visualizeBranch.map((e, i) => {
             const xm = Math.min(e.x1, e.x2, e.x3, e.x4);
@@ -223,16 +216,16 @@ class GuiArea extends React.Component {
             const ym = Math.min(e.y1, e.y2, e.y3, e.y4);
             const yM = Math.max(e.y1, e.y2, e.y3, e.y4);
             if (
-              xm - this.state.scrollLeft < this.props.style.width &&
+              xm - this.state.scrollLeft < this.props.guiAreaWidth &&
               xM - this.state.scrollLeft > 0 &&
-              ym - this.state.scrollTop < this.props.style.height &&
+              ym - this.state.scrollTop < this.props.guiAreaHeight &&
               yM - this.state.scrollTop > 0
             )
               return (
                 <path
                   key={i}
                   stroke={e.stroke}
-                  strokeWidth="3"
+                  strokeWidth='3'
                   d={`M ${e.x1 - this.state.scrollLeft},${e.y1 -
                     this.state.scrollTop}
                                 C ${e.x3 - this.state.scrollLeft},${e.y3 -
@@ -248,16 +241,16 @@ class GuiArea extends React.Component {
               this.state.lastVisualizeUndoStackCoord[0] - this.state.scrollLeft
             }
             y={this.state.lastVisualizeUndoStackCoord[1] - this.state.scrollTop}
-            width="70"
-            height="70"
-            fill="#f70"
+            width={this.props.currentStackBackgroundSize}
+            height={this.props.currentStackBackgroundSize}
+            fill='#f70'
           />
           {this.state.visualizeUndoStack.map((e, i) => {
             if (
-              e.x - this.state.scrollLeft < this.props.style.width &&
-              e.x - this.state.scrollLeft + this.imgSize > 0 &&
-              e.y - this.state.scrollTop < this.props.style.height &&
-              e.y - this.state.scrollTop + this.imgSize > 0
+              e.x - this.state.scrollLeft < this.props.guiAreaWidth &&
+              e.x - this.state.scrollLeft + this.props.imgSize > 0 &&
+              e.y - this.state.scrollTop < this.props.guiAreaHeight &&
+              e.y - this.state.scrollTop + this.props.imgSize > 0
             )
               return (
                 <React.Fragment key={i}>
@@ -265,15 +258,15 @@ class GuiArea extends React.Component {
                     xlinkHref={e.stack.img}
                     x={e.x - this.state.scrollLeft}
                     y={e.y - this.state.scrollTop}
-                    width={50}
-                    height={50}
+                    width={this.props.imgSize}
+                    height={this.props.imgSize}
                   />
-                  <text
+                  {/* <text
                     x={e.x - this.state.scrollLeft}
                     y={e.y + 65 - this.state.scrollTop}
                     fontSize={20}
-                    fill="#fff"
-                  >{`${e.stack.id},${e.stack.branchId}`}</text>
+                    fill='#fff'
+                  >{`${e.stack.id},${e.stack.branchId }`}</text> */}
                 </React.Fragment>
               );
           })}
@@ -288,13 +281,15 @@ class GuiArea extends React.Component {
                     y1={y1}
                     x2={x2}
                     y2={y2}
-                    stroke="rgba(70,30,200,0.7)"
-                    strokeWidth="70"
+                    stroke='rgba(70,30,200,0.7)'
+                    strokeWidth={this.props.currentStackBackgroundSize}
                   />
                   <polygon
                     transform={`translate(${x2} ${y2}) rotate(${degree})`}
-                    fill="rgba(70,30,200,0.7)"
-                    points={`${0},${-50} ${0},${50} ${50},${0}`}
+                    fill='rgba(70,30,200,0.7)'
+                    points={`${0},${-this.props.imgSize} ${0},${
+                      this.props.imgSize
+                    } ${this.props.imgSize},${0}`}
                   />
                 </React.Fragment>
               );
@@ -305,30 +300,6 @@ class GuiArea extends React.Component {
             this.state.visualizeFlowArrow[2] - this.state.scrollLeft,
             this.state.visualizeFlowArrow[3] - this.state.scrollTop
           )}
-          <polygon
-            fill="#f05"
-            points={`175,${this.props.style.height - 300} 125,${this.props.style
-              .height - 250} 225,${this.props.style.height - 250}`}
-            ref={e => (this.topArrow = e)}
-          />
-          <polygon
-            fill="#f05"
-            points={`50,${this.props.style.height - 175} 100,${this.props.style
-              .height - 225} 100,${this.props.style.height - 125}`}
-            ref={e => (this.leftArrow = e)}
-          />
-          <polygon
-            fill="#f05"
-            points={`175,${this.props.style.height - 50} 125,${this.props.style
-              .height - 100} 225,${this.props.style.height - 100}`}
-            ref={e => (this.bottomArrow = e)}
-          />
-          <polygon
-            fill="#f05"
-            points={`300,${this.props.style.height - 175} 250,${this.props.style
-              .height - 225} 250,${this.props.style.height - 125}`}
-            ref={e => (this.rightArrow = e)}
-          />
           {/*<text
             x="50"
             y="100"
@@ -346,10 +317,10 @@ class GuiArea extends React.Component {
           const maxY = Math.max(...this.state.visualizeUndoStack.map(e => e.y));
           return this.state.visualizeUndoStack.map((e, i) => {
             if (
-              (e.x - this.state.scrollLeft < this.props.style.width &&
-                e.x - this.state.scrollLeft + this.imgSize > 0 &&
-                e.y - this.state.scrollTop < this.props.style.height &&
-                e.y - this.state.scrollTop + this.imgSize > 0) ||
+              (e.x - this.state.scrollLeft < this.props.guiAreaWidth &&
+                e.x - this.state.scrollLeft + this.props.imgSize > 0 &&
+                e.y - this.state.scrollTop < this.props.guiAreaHeight &&
+                e.y - this.state.scrollTop + this.props.imgSize > 0) ||
               e.x === maxX ||
               e.y === maxY
             )
@@ -357,13 +328,14 @@ class GuiArea extends React.Component {
                 <div
                   key={i}
                   style={{
-                    position: "absolute",
+                    position: 'absolute',
                     left: e.x,
-                    top: e.y,
-                    width: 50,
-                    height: 50
+                    top: e.y + this.props.headerHeight,
+                    width: this.props.imgSize,
+                    height: this.props.imgSize
                   }}
-                  onClick={this.imgHandleClick(e.stack).bind(this)}
+                  onClick={this.imgHandleClick(e.stack)}
+                  onTouchStart={this.imgHandleClick(e.stack)}
                 />
               );
           });
@@ -372,5 +344,3 @@ class GuiArea extends React.Component {
     );
   }
 }
-
-export default GuiArea;

@@ -1,6 +1,7 @@
-import React from "react";
-import vert from "./colorPropertyAreaVertexShader.glsl";
-import frag from "./colorPropertyAreaFragmentShader.glsl";
+import React from 'react';
+import { inject, observer } from 'mobx-react';
+import vert from './colorPropertyAreaVertexShader.glsl';
+import frag from './colorPropertyAreaFragmentShader.glsl';
 
 const render = gl => {
   gl.clear(gl.COLOR_BUFFER_BIT);
@@ -34,7 +35,7 @@ const webGLStart = (canvas, gl, vs, fs) => {
   const create_vbo = data => {
     const vbo = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.DYNAMIC_COPY);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.STATIC_DRAW);
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
     return vbo;
   };
@@ -78,9 +79,9 @@ const webGLStart = (canvas, gl, vs, fs) => {
   const uniLocation = [];
   const attLocation = [];
   const attStride = [];
-  uniLocation[0] = gl.getUniformLocation(drawColorProgram, "resolution");
+  uniLocation[0] = gl.getUniformLocation(drawColorProgram, 'resolution');
   const vPosition = create_vbo(position);
-  attLocation[0] = gl.getAttribLocation(drawColorProgram, "position");
+  attLocation[0] = gl.getAttribLocation(drawColorProgram, 'position');
   attStride[0] = 3;
   set_attribute([vPosition], attLocation, attStride);
   const vIndex = create_ibo(index);
@@ -90,7 +91,12 @@ const webGLStart = (canvas, gl, vs, fs) => {
   render(gl);
 };
 
-class ColorPropertyArea extends React.Component {
+@inject(({ state }, props) => {
+  return {
+    updateColor: state.updateColor
+  };
+})
+export default class ColorPropertyArea extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -102,53 +108,53 @@ class ColorPropertyArea extends React.Component {
     const canvas = this.canvas;
     canvas.width = this.props.style.width;
     canvas.height = this.props.style.height;
-    this.gl = canvas.getContext("webgl2");
+    this.gl = canvas.getContext('webgl');
     const gl = this.gl;
     webGLStart(canvas, gl, vert(), frag());
   }
-  handleMouseDown(e) {
+  handleMouseDown = e => {
     const gl = this.gl;
     const event = e.nativeEvent;
     const u8 = new Uint8Array(4);
     render(gl);
     gl.readPixels(
-      event.offsetX,
-      this.props.style.height - event.offsetY,
+      event.layerX,
+      this.props.style.height - event.layerY,
       1,
       1,
       gl.RGBA,
       gl.UNSIGNED_BYTE,
       u8
     );
-    this.props.handlechange([u8[0], u8[1], u8[2]]);
+    this.props.updateColor([u8[0], u8[1], u8[2]]);
     this.setState({
-      mouseX: event.offsetX,
-      mouseY: event.offsetY
+      mouseX: event.layerX,
+      mouseY: event.layerY
     });
-  }
+  };
   render() {
     return (
-      <div style={{ position: "relative" }}>
+      <div touch-action='none' style={{ position: 'relative' }}>
         <canvas
           style={this.props.style}
           ref={e => {
             this.canvas = e;
           }}
-          onMouseDown={this.handleMouseDown.bind(this)}
+          onMouseDown={this.handleMouseDown}
+          onTouchStart={this.handleMouseDown}
         />
         <svg
           style={{
-            position: "absolute",
+            position: 'absolute',
             width: 10,
             height: 10,
             left: this.state.mouseX - 5,
             top: this.state.mouseY - 5
           }}
         >
-          <circle cx="5" cy="5" r="5" fill="#fff" stroke="#000" />
+          <circle cx='5' cy='5' r='5' fill='#fff' stroke='#000' />
         </svg>
       </div>
     );
   }
 }
-export default ColorPropertyArea;

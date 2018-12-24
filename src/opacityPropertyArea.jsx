@@ -1,6 +1,7 @@
-import React from "react";
-import vert from "./opacityPropertyAreaVertexShader.glsl";
-import frag from "./opacityPropertyAreaFragmentShader.glsl";
+import React from 'react';
+import { inject, observer } from 'mobx-react';
+import vert from './opacityPropertyAreaVertexShader.glsl';
+import frag from './opacityPropertyAreaFragmentShader.glsl';
 
 const length = a => {
   return Math.sqrt(a[0] * a[0] + a[1] * a[1] + a[2] * a[2]);
@@ -86,10 +87,10 @@ const webGLStart = (canvas, gl, vs, fs, color) => {
   const uniLocation = [];
   const attLocation = [];
   const attStride = [];
-  uniLocation[0] = gl.getUniformLocation(drawColorProgram, "resolution");
-  uniLocation[1] = gl.getUniformLocation(drawColorProgram, "color");
+  uniLocation[0] = gl.getUniformLocation(drawColorProgram, 'resolution');
+  uniLocation[1] = gl.getUniformLocation(drawColorProgram, 'color');
   const vPosition = create_vbo(position);
-  attLocation[0] = gl.getAttribLocation(drawColorProgram, "position");
+  attLocation[0] = gl.getAttribLocation(drawColorProgram, 'position');
   attStride[0] = 3;
   set_attribute([vPosition], attLocation, attStride);
   const vIndex = create_ibo(index);
@@ -102,62 +103,67 @@ const webGLStart = (canvas, gl, vs, fs, color) => {
   return uniLocation;
 };
 
-class OpacityPropertyArea extends React.Component {
+@inject(({ state }, props) => {
+  return {
+    colorArray: state.colorArray,
+    updateOpacity: state.updateOpacity,
+    updateOpacityAreaRender: state.updateOpacityAreaRender,
+    updateOpacityAreaGlContext: state.updateOpacityAreaGlContext,
+    updateOpacityAreaUniLocation: state.updateOpacityAreaUniLocation
+  };
+})
+export default class OpacityPropertyArea extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      color: [0.0, 0.0, 0.0],
       mouseX: this.props.style.width,
       mouseY: this.props.style.height / 2 + 5
     };
   }
   componentDidMount() {
-    const canvas = this.canvas;
-    canvas.width = this.props.style.width;
-    canvas.height = this.props.style.height;
-    this.gl = canvas.getContext("webgl");
-    const gl = this.gl;
-    const color = this.state.color;
-    this.uniLocation = webGLStart(canvas, gl, vert(), frag(), color);
+    this.canvas.width = this.props.style.width;
+    this.canvas.height = this.props.style.height;
+    this.gl = this.canvas.getContext('webgl');
+    this.uniLocation = webGLStart(
+      this.canvas,
+      this.gl,
+      vert(),
+      frag(),
+      this.props.colorArray.map(e => e / 255)
+    );
+    this.props.updateOpacityAreaGlContext(this.gl);
+    this.props.updateOpacityAreaUniLocation(this.uniLocation);
+    this.props.updateOpacityAreaRender(render);
   }
-  handleMouseDown(e) {
-    const gl = this.gl;
+  handleMouseDown = e => {
     const event = e.nativeEvent;
-    const color = this.state.color;
-    render(gl, color, this.uniLocation);
+    const color = this.props.colorArray;
+    render(this.gl, color.map(e => e / 255), this.uniLocation);
     const u8 = new Uint8Array(4);
-    gl.readPixels(
-      event.offsetX,
-      this.props.style.height - event.offsetY,
+    this.gl.readPixels(
+      event.layerX,
+      this.props.style.height - event.layerY,
       1,
       1,
-      gl.RGBA,
-      gl.UNSIGNED_BYTE,
+      this.gl.RGBA,
+      this.gl.UNSIGNED_BYTE,
       u8
     );
-    this.props.handlechange(
-      this.state.color.map(e => e * 255).concat(u8[3] / 255)
-    );
+    this.props.updateOpacity(u8[3] / 255);
     this.setState({
-      mouseX: event.offsetX,
-      mouseY: event.offsetY
+      mouseX: event.layerX,
+      mouseY: event.layerY
     });
-  }
-  updateColor(color) {
-    const gl = this.gl;
-    render(gl, color.map(e => e / 255), this.uniLocation);
-    this.setState({
-      color: color.map(e => e / 255)
-    });
-  }
+  };
   render() {
     return (
       <div
+        touch-action='none'
         style={{
           margin: 0,
           padding: 0,
           height: this.props.style.height,
-          position: "relative"
+          position: 'relative'
         }}
       >
         <canvas
@@ -165,21 +171,21 @@ class OpacityPropertyArea extends React.Component {
           ref={e => {
             this.canvas = e;
           }}
-          onMouseDown={this.handleMouseDown.bind(this)}
+          onMouseDown={this.handleMouseDown}
+          onTouchStart={this.handleMouseDown}
         />
         <svg
           style={{
-            position: "absolute",
+            position: 'absolute',
             width: 10,
             height: 10,
             left: this.state.mouseX - 5,
             top: this.state.mouseY - 5
           }}
         >
-          <circle cx="5" cy="5" r="5" fill="#fff" stroke="#000" />
+          <circle cx='5' cy='5' r='5' fill='#fff' stroke='#000' />
         </svg>
       </div>
     );
   }
 }
-export default OpacityPropertyArea;
