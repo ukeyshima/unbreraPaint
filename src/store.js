@@ -91,7 +91,7 @@ export default class State {
         this.drawAreaWidth -
         this.guiAreaHeight -
         this.headerHeight * 3 -
-        30;
+        40;
 
   @observable
   gestureAreaPosition =
