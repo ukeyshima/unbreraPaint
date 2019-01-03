@@ -67,7 +67,11 @@ export default class State {
         }
       : {
           x: this.drawAreaPosition.x,
-          y: this.drawAreaPosition.y + this.drawAreaWidth +this.headerHeight+ 10
+          y:
+            this.drawAreaPosition.y +
+            this.drawAreaWidth +
+            this.headerHeight +
+            10
         };
 
   @action.bound
@@ -83,7 +87,11 @@ export default class State {
   gestureAreaHeight =
     this.windowWidth > this.windowHeight
       ? this.windowHeight - this.drawAreaWidth - this.headerHeight * 3 - 10
-      : this.windowHeight - this.drawAreaWidth - this.guiAreaHeight - 30;
+      : this.windowHeight -
+        this.drawAreaWidth -
+        this.guiAreaHeight -
+        this.headerHeight * 3 -
+        30;
 
   @observable
   gestureAreaPosition =
@@ -98,7 +106,8 @@ export default class State {
         }
       : {
           x: this.drawAreaPosition.x,
-          y: this.guiAreaPosition.y + this.guiAreaHeight + this.headerHeight + 10
+          y:
+            this.guiAreaPosition.y + this.guiAreaHeight + this.headerHeight + 10
         };
   @action.bound
   updateGestureAreaPosition(x, y) {
