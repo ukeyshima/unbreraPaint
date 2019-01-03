@@ -1,19 +1,19 @@
-require('babel-core/register'); 
-require('babel-polyfill'); 
+require('babel-core/register');
+require('babel-polyfill');
 
 const path = require('path');
-const src = path.resolve(__dirname, "src");
-const dist = path.resolve(__dirname, "docs");
+const src = path.resolve(__dirname, 'src');
+const dist = path.resolve(__dirname, 'docs');
 
-module.exports={
-  entry: [src + "/main.jsx"],
+module.exports = {
+  entry: [src + '/main.jsx'],
   output: {
     path: dist,
-    filename: "[name].bundle.js"
+    filename: '[name].bundle.js'
   },
-  devtool: "inline-source-map",
+  devtool: 'inline-source-map',
   devServer: {
-    host: "0.0.0.0",
+    host: '0.0.0.0',
     contentBase: dist,
     disableHostCheck: true
   },
@@ -22,27 +22,19 @@ module.exports={
       {
         test: /\.(jsx|js)$/,
         exclude: /node_modules/,
-        loader: "babel-loader"
+        loader: 'babel-loader'
       },
       {
         test: /\.scss$/,
-        loader: ["style-loader", "css-loader", "sass-loader"]
-      },
-      {
-        test: /\.(ttf|jpg|png)$/,
-        loader: "url-loader"
+        loader: ['style-loader/useable', 'css-loader', 'sass-loader']
       },
       {
         test: /\.glsl$/,
-        loader: "glsl-loader"
-      },
-      {
-        test:/\.json$/,
-        loader:"json-loader"
+        loader: 'glsl-loader'
       }
     ]
   },
   resolve: {
-    extensions: [".js"]
+    extensions: ['.js']
   }
 };
