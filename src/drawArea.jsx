@@ -77,10 +77,20 @@ export default class DrawArea extends React.Component {
     window.removeEventListener('keydown', this.handleKeyDown);
   }
   handleMouseDown = e => {
-    const event = e.nativeEvent;
     const context = this.state.context;
-    const x = event.layerX / this.props.sizeRatio;
-    const y = event.layerY / this.props.sizeRatio;
+    const x =
+      ((e.hasOwnProperty('changedTouches')
+        ? e.changedTouches[0].pageX
+        : e.pageX) -
+        this.props.drawAreaPositionX) /
+      this.props.sizeRatio;
+    const y =
+      ((e.hasOwnProperty('changedTouches')
+        ? e.changedTouches[0].pageY
+        : e.pageY) -
+        this.props.drawAreaPositionY -
+        this.props.headerHeight) /
+      this.props.sizeRatio;
     this.setState({
       mousedown: true
     });
@@ -96,13 +106,23 @@ export default class DrawArea extends React.Component {
     );
   };
   handleMouseMove = e => {
-    const event = e.nativeEvent;
     const context = this.state.context;
     const wrapperContext = this.state.wrapperContext;
     const prevX = this.prevX;
     const prevY = this.prevY;
-    const x = event.layerX / this.props.sizeRatio;
-    const y = event.layerY / this.props.sizeRatio;
+    const x =
+      ((e.hasOwnProperty('changedTouches')
+        ? e.changedTouches[0].pageX
+        : e.pageX) -
+        this.props.drawAreaPositionX) /
+      this.props.sizeRatio;
+    const y =
+      ((e.hasOwnProperty('changedTouches')
+        ? e.changedTouches[0].pageY
+        : e.pageY) -
+        this.props.drawAreaPositionY -
+        this.props.headerHeight) /
+      this.props.sizeRatio;
     if (this.state.mousedown) {
       context.strokeStyle = this.props.color;
       context.lineWidth = this.props.strokeWidth;
@@ -170,14 +190,24 @@ export default class DrawArea extends React.Component {
     }
   };
   handleMouseUp = e => {
-    const event = e.nativeEvent;
     const canvas = this.canvas;
     const context = this.state.context;
     const wrapperContext = this.state.wrapperContext;
     const prevX = this.prevX;
     const prevY = this.prevY;
-    const x = event.layerX / this.props.sizeRatio;
-    const y = event.layerY / this.props.sizeRatio;
+    const x =
+      ((e.hasOwnProperty('changedTouches')
+        ? e.changedTouches[0].pageX
+        : e.pageX) -
+        this.props.drawAreaPositionX) /
+      this.props.sizeRatio;
+    const y =
+      ((e.hasOwnProperty('changedTouches')
+        ? e.changedTouches[0].pageY
+        : e.pageY) -
+        this.props.drawAreaPositionY -
+        this.props.headerHeight) /
+      this.props.sizeRatio;
     const undoManager = this.props.undoManager;
     wrapperContext.clearRect(0, 0, this.initialWidth, this.initialHeight);
     if (this.props.flagRect) {
@@ -269,7 +299,6 @@ export default class DrawArea extends React.Component {
         }}
       >
         <DrawAreaHeader
-          touch-action='auto'
           style={{
             width: this.props.drawAreaWidth,
             height: this.props.headerHeight,

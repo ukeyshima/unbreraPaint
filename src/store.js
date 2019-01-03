@@ -22,7 +22,10 @@ export default class State {
   propertyAreaWidth = 100;
 
   @observable
-  initialDrawAreaWidth = (this.windowHeight * 2) / 3;
+  initialDrawAreaWidth =
+    this.windowHeight < this.windowWidth
+      ? (this.windowHeight * 2) / 3
+      : this.windowWidth - this.propertyAreaWidth - 20;
 
   @observable
   drawAreaWidth = this.initialDrawAreaWidth;
@@ -45,17 +48,27 @@ export default class State {
 
   @observable
   guiAreaWidth =
-    this.windowWidth - this.drawAreaPosition.x - this.drawAreaWidth - 20;
+    this.windowWidth > this.windowHeight
+      ? this.windowWidth - this.drawAreaPosition.x - this.drawAreaWidth - 20
+      : this.drawAreaWidth;
 
   @observable
   guiAreaHeight =
-    this.windowHeight - this.headerHeight - this.headerHeight - 20;
+    this.windowWidth > this.windowHeight
+      ? this.windowHeight - this.headerHeight - this.headerHeight - 20
+      : (this.windowHeight - this.drawAreaWidth) / 2;
 
   @observable
-  guiAreaPosition = {
-    x: this.drawAreaPosition.x + this.drawAreaWidth + 10,
-    y: this.headerHeight + 10
-  };
+  guiAreaPosition =
+    this.windowWidth > this.windowHeight
+      ? {
+          x: this.drawAreaPosition.x + this.drawAreaWidth + 10,
+          y: this.headerHeight + 10
+        }
+      : {
+          x: this.drawAreaPosition.x,
+          y: this.drawAreaPosition.y + this.drawAreaWidth +this.headerHeight+ 10
+        };
 
   @action.bound
   updateGuiAreaPosition(x, y) {
@@ -68,13 +81,25 @@ export default class State {
 
   @observable
   gestureAreaHeight =
-    this.windowHeight - this.drawAreaWidth - this.headerHeight * 3 - 10;
+    this.windowWidth > this.windowHeight
+      ? this.windowHeight - this.drawAreaWidth - this.headerHeight * 3 - 10
+      : this.windowHeight - this.drawAreaWidth - this.guiAreaHeight - 30;
 
   @observable
-  gestureAreaPosition = {
-    x: this.propertyAreaWidth + 10,
-    y: this.drawAreaPosition.y + this.drawAreaWidth + this.headerHeight + 10
-  };
+  gestureAreaPosition =
+    this.windowWidth > this.windowHeight
+      ? {
+          x: this.drawAreaPosition.x,
+          y:
+            this.drawAreaPosition.y +
+            this.drawAreaWidth +
+            this.headerHeight +
+            10
+        }
+      : {
+          x: this.drawAreaPosition.x,
+          y: this.guiAreaPosition.y + this.guiAreaHeight + this.headerHeight + 10
+        };
   @action.bound
   updateGestureAreaPosition(x, y) {
     this.gestureAreaPosition.x = x;

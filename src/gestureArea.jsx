@@ -35,9 +35,14 @@ export default class GestureArea extends React.Component {
     });
   }
   handleMouseDown = e => {
-    const event = e.nativeEvent;
-    const x = event.layerX;
-    const y = event.layerY;
+    const x =
+      (e.hasOwnProperty('changedTouches')
+        ? e.changedTouches[0].pageX
+        : e.pageX) - this.props.gestureAreaPositionX;
+    const y =
+      (e.hasOwnProperty('changedTouches')
+        ? e.changedTouches[0].pageY
+        : e.pageY) - this.props.gestureAreaPositionY;
     this.x = [x];
     this.y = [y];
     this.setState({
@@ -47,10 +52,15 @@ export default class GestureArea extends React.Component {
   };
   handleMouseMove = e => {
     if (this.state.mouseDown) {
-      const event = e.nativeEvent;
       const context = this.state.context;
-      const x = event.layerX;
-      const y = event.layerY;
+      const x =
+        (e.hasOwnProperty('changedTouches')
+          ? e.changedTouches[0].pageX
+          : e.pageX) - this.props.gestureAreaPositionX;
+      const y =
+        (e.hasOwnProperty('changedTouches')
+          ? e.changedTouches[0].pageY
+          : e.pageY) - this.props.gestureAreaPositionY;
       context.strokeStyle = '#eee';
       context.lineWidth = 10;
       context.lineJoin = 'round';

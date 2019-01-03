@@ -21,26 +21,22 @@ export default class GestureAreaHeader extends React.Component {
     document.body.addEventListener('mouseup', this.handleMouseAndTouchUp);
     document.body.addEventListener('touchend', this.handleMouseAndTouchUp);
     this.setState({
-      x: e.hasOwnProperty('changedTouches')
-        ? e.changedTouches[0].pageX
-        : e.pageX,
-      y: e.hasOwnProperty('changedTouches')
-        ? e.changedTouches[0].pageY
-        : e.pageY
+      x: 'changedTouches' in e ? e.changedTouches[0].pageX : e.pageX,
+      y: 'changedTouches' in e ? e.changedTouches[0].pageY : e.pageY
     });
   };
   handleMouseAndTouchMove = e => {
     this.props.updateGestureAreaPosition(
-      this.props.gestureAreaPositionX + e.pageX - this.state.x,
-      this.props.gestureAreaPositionY + e.pageY - this.state.y
+      this.props.gestureAreaPositionX +
+        ('changedTouches' in e ? e.changedTouches[0].pageX : e.pageX) -
+        this.state.x,
+      this.props.gestureAreaPositionY +
+        ('changedTouches' in e ? e.changedTouches[0].pageY : e.pageY) -
+        this.state.y
     );
     this.setState({
-      x: e.hasOwnProperty('changedTouches')
-        ? e.changedTouches[0].pageX
-        : e.pageX,
-      y: e.hasOwnProperty('changedTouches')
-        ? e.changedTouches[0].pageY
-        : e.pageY
+      x: 'changedTouches' in e ? e.changedTouches[0].pageX : e.pageX,
+      y: 'changedTouches' in e ? e.changedTouches[0].pageY : e.pageY
     });
   };
   handleMouseAndTouchUp = () => {
