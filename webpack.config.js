@@ -1,24 +1,19 @@
-require('babel-core/register');
-require('babel-polyfill');
-
 const path = require('path');
 const src = path.resolve(__dirname, 'src');
-const dist = path.resolve(__dirname, 'docs');
+const docs = path.resolve(__dirname, 'docs');
 
 module.exports = {
-  entry: [src + '/main.jsx'],
+  entry: [path.join(src, '/main.jsx')],
   output: {
-    path: dist,
+    path: docs,
     filename: '[name].bundle.js'
   },
-  devtool: 'inline-source-map',
   devServer: {
     host: '0.0.0.0',
-    contentBase: dist,
-    disableHostCheck: true
+    contentBase: docs
   },
   module: {
-    loaders: [
+    rules: [
       {
         test: /\.(jsx|js)$/,
         exclude: /node_modules/,
@@ -35,6 +30,6 @@ module.exports = {
     ]
   },
   resolve: {
-    extensions: ['.js']
+    extensions: ['.js', '.jsx']
   }
 };
